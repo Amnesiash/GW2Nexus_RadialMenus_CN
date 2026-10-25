@@ -63,7 +63,6 @@ add_library(radials SHARED
     src/Core/RadialContext.cpp
     src/Core/RadialMenu.cpp
     src/Core/StateObserver.cpp
-    src/Core/LocaleFont.cpp
     src/Core/LanguageConfig.cpp
     src/thirdparty/ImAnimate/ImAnimate.cpp
     src/thirdparty/imgui/imgui.cpp
