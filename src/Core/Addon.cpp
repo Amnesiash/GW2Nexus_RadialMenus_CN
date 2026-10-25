@@ -65,8 +65,6 @@ namespace Addon
 		APIDefs->Events.Subscribe("EV_ADDON_LOADED", (EVENT_CONSUME)OnAddonLoaded);
 		APIDefs->Events.Subscribe("EV_ADDON_UNLOADED", (EVENT_CONSUME)OnAddonUnloaded);
 
-		Lang::SetConfigPath(AddonDirectory.string());
-		Lang::LoadConfig();
 		Lang::Init(APIDefs->Localization.Set);
 		RadialCtx = new CRadialContext();
 		RadialCtx->Load();

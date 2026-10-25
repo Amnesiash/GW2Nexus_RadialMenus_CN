@@ -3,74 +3,31 @@
 
 #include "Nexus/Nexus.h"
 
-#include <string>
-#include <unordered_map>
-#include <utility>
-
 extern AddonAPI* APIDefs;
 
 ///----------------------------------------------------------------------------------------------------
 /// Lang Namespace
 /// 	Localization for the Radial Menus addon.
-/// 	Translations are registered through the Nexus localization API on load.
-/// 	"en" is English, "cn" is Simplified Chinese (Nexus language id).
-/// 	An in-addon language switch (ChineseSimplified / English) overrides the
-/// 	displayed language regardless of the Nexus UI language.
+/// 	All UI texts are registered through the Nexus localization API (codes "en"
+/// 	and "cn"); Nexus' Translate returns the text for the language currently
+/// 	active in Nexus. The addon follows the Nexus language and offers no
+/// 	language switch of its own (same approach as App Launcher CN).
 ///----------------------------------------------------------------------------------------------------
 namespace Lang
 {
 	///----------------------------------------------------------------------------------------------------
-	/// RMLanguage:
-	/// 	UI language selectable from the addon settings.
-	/// 	Chinese Simplified is the default; English stays selectable at runtime.
-	///----------------------------------------------------------------------------------------------------
-	enum class RMLanguage
-	{
-		ChineseSimplified = 0,
-		English = 1,
-	};
-
-	inline constexpr RMLanguage kDefaultLanguage = RMLanguage::ChineseSimplified;
-
-	RMLanguage FromSettingsValue(int aValue);
-	int ToSettingsValue(RMLanguage aLanguage);
-
-	void SetLanguage(RMLanguage aLanguage);
-	RMLanguage Current();
-
-	/// Forward declarations so the inline functions below can reference shared
-	/// state helpers defined later in this file.
-	std::unordered_map<std::string, std::pair<std::string, std::string>>& GetEntries();
-	RMLanguage& GetLanguage();
-
-	///----------------------------------------------------------------------------------------------------
 	/// T:
-	/// 	Translates an identifier into the active in-addon language.
-	/// 	English is returned when the user selected English, otherwise the
-	/// 	Simplified Chinese text is returned. Falls back to the identifier
-	/// 	itself when no translation is registered (avoids null dereference).
+	/// 	Translates an identifier into the language currently active in Nexus.
 	///----------------------------------------------------------------------------------------------------
 	inline const char* T(const char* aIdentifier)
 	{
 		if (aIdentifier == nullptr) { return ""; }
+		if (APIDefs == nullptr || APIDefs->Localization.Translate == nullptr) { return aIdentifier; }
 
-		static const auto& s_entries = GetEntries();
-		auto it = s_entries.find(aIdentifier);
-		if (it != s_entries.end())
-		{
-			const std::string& value = (Current() == RMLanguage::English)
-				? it->second.first
-				: it->second.second;
-			return value.c_str();
-		}
-
-		/* No in-addon entry: fall back to Nexus translation (or the identifier). */
-		if (APIDefs != nullptr && APIDefs->Localization.Translate != nullptr)
-		{
-			const char* translated = APIDefs->Localization.Translate(aIdentifier);
-			if (translated != nullptr) { return translated; }
-		}
-		return aIdentifier;
+		/* Nexus 未注册该标识符时 Translate 可能返回 nullptr，
+		   直接传给 ImGui::Text 或 std::string 会触发空指针崩溃，故兜底返回标识符本身 */
+		const char* translated = APIDefs->Localization.Translate(aIdentifier);
+		return translated != nullptr ? translated : aIdentifier;
 	}
 
 	///----------------------------------------------------------------------------------------------------
@@ -249,16 +206,16 @@ namespace Lang
 			/* mounts */
 			{ "RM_MOUNT_ANY", "Any Mount", "任意坐骑" },
 			{ "RM_MOUNT_NOT", "Not Mounted", "未骑乘" },
-			{ "RM_MOUNT_RAPTOR", "肉食鸟", "肉食鸟" },
-			{ "RM_MOUNT_SPRINGER", "弹跳兔", "弹跳兔" },
-			{ "RM_MOUNT_SKIMMER", "飞鱼", "飞鱼" },
-			{ "RM_MOUNT_JACKAL", "胡狼", "胡狼" },
-			{ "RM_MOUNT_GRIFFON", "狮鹫", "狮鹫" },
-			{ "RM_MOUNT_ROLLERBEETLE", "翻滚甲虫", "翻滚甲虫" },
-			{ "RM_MOUNT_WARCLAW", "战爪", "战爪" },
-			{ "RM_MOUNT_SKYSCALE", "飞天鳞龙", "飞天鳞龙" },
-			{ "RM_MOUNT_SKIFF", "小船", "小船" },
-			{ "RM_MOUNT_SIEGETURTLE", "攻城龟", "攻城龟" },
+			{ "RM_MOUNT_RAPTOR", "Raptor", "肉食鸟" },
+			{ "RM_MOUNT_SPRINGER", "Springer", "弹跳兔" },
+			{ "RM_MOUNT_SKIMMER", "Skimmer", "飞鱼" },
+			{ "RM_MOUNT_JACKAL", "Jackal", "胡狼" },
+			{ "RM_MOUNT_GRIFFON", "Griffon", "狮鹫" },
+			{ "RM_MOUNT_ROLLERBEETLE", "Roller Beetle", "翻滚甲虫" },
+			{ "RM_MOUNT_WARCLAW", "Warclaw", "战爪" },
+			{ "RM_MOUNT_SKYSCALE", "Skyscale", "飞天鳞龙" },
+			{ "RM_MOUNT_SKIFF", "Skiff", "小船" },
+			{ "RM_MOUNT_SIEGETURTLE", "Siege Turtle", "攻城龟" },
 
 			/* alerts */
 			{ "RM_ALERT_ID_CONFLICT", "Some Radial bindings might have changed due to ID conflicts.", "由于 ID 冲突，部分轮盘绑定可能已发生变化。" },
@@ -267,10 +224,6 @@ namespace Lang
 			{ "RM_LBL_WIDGET", "Widget", "小部件" },
 			{ "RM_TIP_WIDGET", "The widget indicates the currently queued action.\nIt has a circular countdown, waiting for the action to start execution.\n\nYou can left-click to refresh the countdown or right-click to cancel the action.", "小部件指示当前排队中的动作。\n它带有一个环形倒计时，等待动作开始执行。\n\n左键可刷新倒计时，右键可取消该动作。" },
 			{ "RM_CHK_EDIT_POSITION", "Edit position", "编辑位置" },
-			{ "RM_LBL_LANGUAGE", "Interface language", "界面语言" },
-			{ "RM_LBL_LANGUAGE_CN", "简体中文", "简体中文" },
-			{ "RM_LBL_LANGUAGE_EN", "English", "English" },
-			{ "RM_TIP_LANGUAGE", "Restart the addon if any text stays untranslated after switching.", "切换语言后若有文本未更新，请重载插件。" },
 
 			/* debug tab */
 			{ "RM_DBG_FALLING", "Falling: %s", "下落：%s" },
@@ -291,8 +244,6 @@ namespace Lang
 			{ "RM_DBG_ISAIRBORNE", "IsAirborne: %s", "滞空：%s" }
 		};
 
-		auto& entries = GetEntries();
-		entries.clear();
 		for (const Entry& e : Entries)
 		{
 			if (aSetterFunc != nullptr)
@@ -300,57 +251,8 @@ namespace Lang
 				aSetterFunc(e.Id, "en", e.En);
 				aSetterFunc(e.Id, "cn", e.Cn);
 			}
-			entries[e.Id] = std::make_pair(std::string(e.En), std::string(e.Cn));
 		}
 	}
-
-	///----------------------------------------------------------------------------------------------------
-	/// GetEntries / GetLanguage:
-	/// 	Meyers-singleton state. A function-local static inside an inline
-	/// 	function is guaranteed to be a single instance across all TUs, so the
-	/// 	translation table and the active language are shared everywhere.
-	///----------------------------------------------------------------------------------------------------
-	inline std::unordered_map<std::string, std::pair<std::string, std::string>>& GetEntries()
-	{
-		static std::unordered_map<std::string, std::pair<std::string, std::string>> s_entries;
-		return s_entries;
-	}
-
-	inline RMLanguage& GetLanguage()
-	{
-		static RMLanguage s_language = kDefaultLanguage;
-		return s_language;
-	}
-
-	inline RMLanguage FromSettingsValue(int aValue)
-	{
-		return aValue == 1 ? RMLanguage::English : RMLanguage::ChineseSimplified;
-	}
-
-	inline int ToSettingsValue(RMLanguage aLanguage)
-	{
-		return aLanguage == RMLanguage::English ? 1 : 0;
-	}
-
-	inline void SetLanguage(RMLanguage aLanguage)
-	{
-		GetLanguage() = aLanguage;
-	}
-
-	inline RMLanguage Current()
-	{
-		return GetLanguage();
-	}
-
-	///----------------------------------------------------------------------------------------------------
-	/// SetConfigPath / LoadConfig / SaveConfig:
-	/// 	Persists the selected UI language to <AddonDirectory>/config.json so the
-	/// 	choice survives an addon reload. SetConfigPath must be called once
-	/// 	during load (with the addon directory) before LoadConfig/SaveConfig.
-	///----------------------------------------------------------------------------------------------------
-	void SetConfigPath(const std::string& aDirectory);
-	void LoadConfig();
-	void SaveConfig();
 }
 
 #endif
