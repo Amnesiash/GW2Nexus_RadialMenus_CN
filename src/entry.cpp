@@ -1,4 +1,4 @@
-﻿///----------------------------------------------------------------------------------------------------
+///----------------------------------------------------------------------------------------------------
 /// Copyright (c) Raidcore.GG - All rights reserved.
 ///
 /// Name         :  entry.cpp
@@ -35,20 +35,20 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 ///----------------------------------------------------------------------------------------------------
 extern "C" __declspec(dllexport) AddonDefinition* GetAddonDef()
 {
-	AddonDef.Signature = 67000002;
+	AddonDef.Signature = -26102502;
 	AddonDef.APIVersion = NEXUS_API_VERSION;
-	AddonDef.Name = "Radial Menus";
+	AddonDef.Name = "Radial Menus CN";
 	AddonDef.Version.Major = V_MAJOR;
 	AddonDef.Version.Minor = V_MINOR;
 	AddonDef.Version.Build = V_BUILD;
 	AddonDef.Version.Revision = V_REVISION;
-	AddonDef.Author = "Raidcore";
-	AddonDef.Description = "Highly customisable radial menus.";
+	AddonDef.Author = "Raidcore、vaon";
+	AddonDef.Description = "自定义轮盘菜单、坐骑插件(简体中文)";
 	AddonDef.Load = Addon::Load;
 	AddonDef.Unload = Addon::Unload;
 
-	AddonDef.Provider = EUpdateProvider_GitHub;
-	AddonDef.UpdateLink = REMOTE_URL;
+	AddonDef.Provider = EUpdateProvider_None;
+	AddonDef.UpdateLink = "";
 
 	return &AddonDef;
 }

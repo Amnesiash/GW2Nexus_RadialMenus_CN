@@ -10,6 +10,7 @@
 
 #include <map>
 #include <fstream>
+#include <thread>
 
 #include "imgui/imgui_internal.h"
 #include "imgui_extensions.h"
@@ -17,6 +18,7 @@
 using json = nlohmann::json;
 
 #include "Addon.h"
+#include "Language.h"
 #include "Shared.h"
 #include "Util.h"
 #include "resource.h"
@@ -51,7 +53,7 @@ void GameBindSelectable(ActionBase* aAction, const char* aLabel, EGameBinds aGam
 	if (!isBound)
 	{
 		ImGui::PopStyleColor();
-		ImGui::TooltipGeneric("Bind this Game InputBind via the Nexus options in order to be able to use it.\nIt must match the game.");
+		ImGui::TooltipGeneric(Lang::T("RM_TIP_UNBOUND_GAMEBIND"));
 	}
 }
 
@@ -273,10 +275,10 @@ std::string GameBindToString(EGameBinds aGameBind)
 std::string ConditionsToString(Conditions* aConditions, bool* aLinkWithPrevious = nullptr)
 {
 	std::string str;
-	if (aConditions->IsCombat         != EObserveBoolean::Either) { str.append(aConditions->IsCombat == EObserveBoolean::True ? "- Is in combat\n" : "- Is out of combat\n"); }
+	if (aConditions->IsCombat         != EObserveBoolean::Either) { str.append(aConditions->IsCombat == EObserveBoolean::True ? Lang::T("RM_COND_LINE_IN_COMBAT") : Lang::T("RM_COND_LINE_OUT_COMBAT")); }
 	if (aConditions->IsMounted == EObserveMount::Any)
 	{
-		str.append("- Is mounted\n");
+		str.append(Lang::T("RM_COND_LINE_MOUNTED"));
 	}
 	else if (aConditions->IsMounted == EObserveMount::Either)
 	{
@@ -284,29 +286,29 @@ std::string ConditionsToString(Conditions* aConditions, bool* aLinkWithPrevious 
 	}
 	else if (aConditions->IsMounted == EObserveMount::NotMounted)
 	{
-		str.append("- Is not mounted\n");
+		str.append(Lang::T("RM_COND_LINE_NOT_MOUNTED"));
 	}
 	else
 	{
-		str.append("- Is on " + StateObserver::StateToString(aConditions->IsMounted) + "\n");
+		str.append(std::string(Lang::T("RM_COND_LINE_ON_MOUNT")) + StateObserver::StateToString(aConditions->IsMounted) + "\n");
 	}
-	if (aConditions->IsCommander      != EObserveBoolean::Either) { str.append(aConditions->IsCommander == EObserveBoolean::True ? "- Has commander tag\n" : "- Does not have commander tag\n"); }
-	if (aConditions->IsCompetitive    != EObserveBoolean::Either) { str.append(aConditions->IsCompetitive == EObserveBoolean::True ? "- Is in WvW/PvP\n" : "- Is in PvE\n"); }
-	if (aConditions->IsMapOpen        != EObserveBoolean::Either) { str.append(aConditions->IsMapOpen == EObserveBoolean::True ? "- Map is open\n" : "- Map is closed\n"); }
-	if (aConditions->IsTextboxActive  != EObserveBoolean::Either) { str.append(aConditions->IsTextboxActive == EObserveBoolean::True ? "- Textbox focused\n" : "- Textbox not focused\n"); }
-	if (aConditions->IsInstance       != EObserveBoolean::Either) { str.append(aConditions->IsInstance == EObserveBoolean::True ? "- Is in instance\n" : "- Is not in instance\n"); }
+	if (aConditions->IsCommander      != EObserveBoolean::Either) { str.append(aConditions->IsCommander == EObserveBoolean::True ? Lang::T("RM_COND_LINE_CMD") : Lang::T("RM_COND_LINE_NO_CMD")); }
+	if (aConditions->IsCompetitive    != EObserveBoolean::Either) { str.append(aConditions->IsCompetitive == EObserveBoolean::True ? Lang::T("RM_COND_LINE_COMP") : Lang::T("RM_COND_LINE_PVE")); }
+	if (aConditions->IsMapOpen        != EObserveBoolean::Either) { str.append(aConditions->IsMapOpen == EObserveBoolean::True ? Lang::T("RM_COND_LINE_MAP_OPEN") : Lang::T("RM_COND_LINE_MAP_CLOSED")); }
+	if (aConditions->IsTextboxActive  != EObserveBoolean::Either) { str.append(aConditions->IsTextboxActive == EObserveBoolean::True ? Lang::T("RM_COND_LINE_TEXTBOX") : Lang::T("RM_COND_LINE_NO_TEXTBOX")); }
+	if (aConditions->IsInstance       != EObserveBoolean::Either) { str.append(aConditions->IsInstance == EObserveBoolean::True ? Lang::T("RM_COND_LINE_INSTANCE") : Lang::T("RM_COND_LINE_NO_INSTANCE")); }
 
 	/* derived game states */
-	if (aConditions->IsGameplay       != EObserveBoolean::Either) { str.append(aConditions->IsGameplay == EObserveBoolean::True ? "- Is gameplay\n" : "- Is loading screen/cutscene/character select\n"); }
+	if (aConditions->IsGameplay       != EObserveBoolean::Either) { str.append(aConditions->IsGameplay == EObserveBoolean::True ? Lang::T("RM_COND_LINE_GAMEPLAY") : Lang::T("RM_COND_LINE_NOT_GAMEPLAY")); }
 
 	/* derived positional states */
-	if (aConditions->IsUnderwater     != EObserveBoolean::Either) { str.append(aConditions->IsUnderwater == EObserveBoolean::True ? "- Is underwater\n" : "- Is terrestrial\n"); }
-	if (aConditions->IsOnWaterSurface != EObserveBoolean::Either) { str.append(aConditions->IsOnWaterSurface == EObserveBoolean::True ? "- Is on water surface\n" : "- Is not on water surface\n"); }
-	if (aConditions->IsAirborne       != EObserveBoolean::Either) { str.append(aConditions->IsAirborne == EObserveBoolean::True ? "- Is airborne" : "- Is not airborne"); }
+	if (aConditions->IsUnderwater     != EObserveBoolean::Either) { str.append(aConditions->IsUnderwater == EObserveBoolean::True ? Lang::T("RM_COND_LINE_UNDERWATER") : Lang::T("RM_COND_LINE_TERRESTRIAL")); }
+	if (aConditions->IsOnWaterSurface != EObserveBoolean::Either) { str.append(aConditions->IsOnWaterSurface == EObserveBoolean::True ? Lang::T("RM_COND_LINE_ON_WATER") : Lang::T("RM_COND_LINE_NOT_ON_WATER")); }
+	if (aConditions->IsAirborne       != EObserveBoolean::Either) { str.append(aConditions->IsAirborne == EObserveBoolean::True ? Lang::T("RM_COND_LINE_AIRBORNE") : Lang::T("RM_COND_LINE_NOT_AIRBORNE")); }
 
 	if (!str.empty())
 	{
-		str = "Required conditions:\n" + str;
+		str = Lang::T("RM_COND_HEADER") + str;
 	}
 
 	if (aLinkWithPrevious != nullptr && *aLinkWithPrevious)
@@ -315,7 +317,7 @@ std::string ConditionsToString(Conditions* aConditions, bool* aLinkWithPrevious 
 		{
 			str.append("\n");
 		}
-		str.append("Linked with previous.");
+		str.append(Lang::T("RM_COND_LINKED"));
 	}
 	return str;
 }
@@ -337,27 +339,27 @@ bool ConditionSelectable(std::string aName, EObserveBoolean* aState, const char*
 	switch (*aState)
 	{
 		case EObserveBoolean::Either:
-			state = "Either";
+			state = Lang::T("RM_STATE_EITHER");
 			break;
 		case EObserveBoolean::False:
-			state = "Must be false";
+			state = Lang::T("RM_STATE_MUST_FALSE");
 			break;
 		case EObserveBoolean::True:
-			state = "Must be true";
+			state = Lang::T("RM_STATE_MUST_TRUE");
 			break;
 	}
 	ImGui::PushItemWidth(width);
 	if (ImGui::BeginCombo(("##observestate" + aName).c_str(), state.c_str()))
 	{
-		if (ImGui::Selectable("Either"))
+		if (ImGui::Selectable(Lang::T("RM_STATE_EITHER")))
 		{
 			*aState = EObserveBoolean::Either;
 		}
-		if (ImGui::Selectable("Must be false"))
+		if (ImGui::Selectable(Lang::T("RM_STATE_MUST_FALSE")))
 		{
 			*aState = EObserveBoolean::False;
 		}
-		if (ImGui::Selectable("Must be true"))
+		if (ImGui::Selectable(Lang::T("RM_STATE_MUST_TRUE")))
 		{
 			*aState = EObserveBoolean::True;
 		}
@@ -365,7 +367,7 @@ bool ConditionSelectable(std::string aName, EObserveBoolean* aState, const char*
 	}
 
 	ImGui::TableSetColumnIndex(2);
-	if (ImGui::Button(("Apply to all##applyallcondsel" + aName).c_str()))
+	if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_TO_ALL")) + "##applyallcondsel" + aName).c_str()))
 	{
 		return true;
 	}
@@ -390,100 +392,100 @@ bool ConditionSelectable(std::string aName, EObserveMount* aState, const char* a
 	{
 		default:
 		case EObserveMount::Any:
-			state = "Any Mount";
+			state = Lang::T("RM_MOUNT_ANY");
 			break;
 		case EObserveMount::Either:
-			state = "Either";
+			state = Lang::T("RM_STATE_EITHER");
 			break;
 		case EObserveMount::NotMounted:
-			state = "Not Mounted";
+			state = Lang::T("RM_MOUNT_NOT");
 			break;
 		case EObserveMount::Jackal:
-			state = "Jackal";
+			state = Lang::T("RM_MOUNT_JACKAL");
 			break;
 		case EObserveMount::Griffon:
-			state = "Griffon";
+			state = Lang::T("RM_MOUNT_GRIFFON");
 			break;
 		case EObserveMount::Springer:
-			state = "Springer";
+			state = Lang::T("RM_MOUNT_SPRINGER");
 			break;
 		case EObserveMount::Skimmer:
-			state = "Skimmer";
+			state = Lang::T("RM_MOUNT_SKIMMER");
 			break;
 		case EObserveMount::Raptor:
-			state = "Raptor";
+			state = Lang::T("RM_MOUNT_RAPTOR");
 			break;
 		case EObserveMount::RollerBeetle:
-			state = "Roller Beetle";
+			state = Lang::T("RM_MOUNT_ROLLERBEETLE");
 			break;
 		case EObserveMount::Warclaw:
-			state = "Warclaw";
+			state = Lang::T("RM_MOUNT_WARCLAW");
 			break;
 		case EObserveMount::Skyscale:
-			state = "Skyscale";
+			state = Lang::T("RM_MOUNT_SKYSCALE");
 			break;
 		case EObserveMount::Skiff:
-			state = "Skiff";
+			state = Lang::T("RM_MOUNT_SKIFF");
 			break;
 		case EObserveMount::SiegeTurtle:
-			state = "Siege Turtle";
+			state = Lang::T("RM_MOUNT_SIEGETURTLE");
 			break;
 	}
 	ImGui::PushItemWidth(width);
 	if (ImGui::BeginCombo(("##observestate" + aName).c_str(), state.c_str()))
 	{
-		if (ImGui::Selectable("Either"))
+		if (ImGui::Selectable(Lang::T("RM_STATE_EITHER")))
 		{
 			*aState = EObserveMount::Either;
 		}
 
-		if (ImGui::Selectable("Any Mount"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_ANY")))
 		{
 			*aState = EObserveMount::Any;
 		}
 
-		if (ImGui::Selectable("Not Mounted"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_NOT")))
 		{
 			*aState = EObserveMount::NotMounted;
 		}
 		
-		if (ImGui::Selectable("Raptor"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_RAPTOR")))
 		{
 			*aState = EObserveMount::Raptor;
 		}
-		if (ImGui::Selectable("Springer"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_SPRINGER")))
 		{
 			*aState = EObserveMount::Springer;
 		}
-		if (ImGui::Selectable("Skimmer"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_SKIMMER")))
 		{
 			*aState = EObserveMount::Skimmer;
 		}
-		if (ImGui::Selectable("Jackal"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_JACKAL")))
 		{
 			*aState = EObserveMount::Jackal;
 		}
-		if (ImGui::Selectable("Griffon"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_GRIFFON")))
 		{
 			*aState = EObserveMount::Griffon;
 		}
-		if (ImGui::Selectable("Roller Beetle"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_ROLLERBEETLE")))
 		{
 			*aState = EObserveMount::RollerBeetle;
 		}
-		if (ImGui::Selectable("Warclaw"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_WARCLAW")))
 		{
 			*aState = EObserveMount::Warclaw;
 		}
-		if (ImGui::Selectable("Skyscale"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_SKYSCALE")))
 		{
 			*aState = EObserveMount::Skyscale;
 		}
-		if (ImGui::Selectable("Skiff"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_SKIFF")))
 		{
 			*aState = EObserveMount::Skiff;
 		}
-		if (ImGui::Selectable("Siege Turtle"))
+		if (ImGui::Selectable(Lang::T("RM_MOUNT_SIEGETURTLE")))
 		{
 			*aState = EObserveMount::SiegeTurtle;
 		}
@@ -491,7 +493,7 @@ bool ConditionSelectable(std::string aName, EObserveMount* aState, const char* a
 	}
 
 	ImGui::TableSetColumnIndex(2);
-	if (ImGui::Button(("Apply to all##applyallcondsel" + aName).c_str()))
+	if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_TO_ALL")) + "##applyallcondsel" + aName).c_str()))
 	{
 		return true;
 	}
@@ -515,32 +517,32 @@ int ConditionEditor(std::string aName, Conditions* aConditions, std::string aApp
 		if (ImGui::BeginTable("##conditioneditortable", 3))
 		{
 			/* direct states */
-			if (ConditionSelectable("Is in combat", &aConditions->IsCombat)) { stateIndex = 0; };
-			if (ConditionSelectable("Is mounted", &aConditions->IsMounted)) { stateIndex = 1; };
-			if (ConditionSelectable("Is commander", &aConditions->IsCommander)) { stateIndex = 2; };
-			if (ConditionSelectable("Is in PvP/WvW", &aConditions->IsCompetitive)) { stateIndex = 3; };
-			if (ConditionSelectable("Is map open", &aConditions->IsMapOpen)) { stateIndex = 4; };
-			if (ConditionSelectable("Is textbox active", &aConditions->IsTextboxActive)) { stateIndex = 5; };
-			if (ConditionSelectable("Is in instance", &aConditions->IsInstance)) { stateIndex = 6; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_IN_COMBAT"), &aConditions->IsCombat)) { stateIndex = 0; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_MOUNTED"), &aConditions->IsMounted)) { stateIndex = 1; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_COMMANDER"), &aConditions->IsCommander)) { stateIndex = 2; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_PVPWVW"), &aConditions->IsCompetitive)) { stateIndex = 3; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_MAP_OPEN"), &aConditions->IsMapOpen)) { stateIndex = 4; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_TEXTBOX_ACTIVE"), &aConditions->IsTextboxActive)) { stateIndex = 5; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_INSTANCE"), &aConditions->IsInstance)) { stateIndex = 6; };
 
 			/* derived game states */
-			if (ConditionSelectable("Is gameplay", &aConditions->IsGameplay)) { stateIndex = 7; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_GAMEPLAY"), &aConditions->IsGameplay)) { stateIndex = 7; };
 
 			/* derived positional states */
-			if (ConditionSelectable("Is underwater", &aConditions->IsUnderwater)) { stateIndex = 8; };
-			if (ConditionSelectable("Is on water surface", &aConditions->IsOnWaterSurface)) { stateIndex = 9; };
-			if (ConditionSelectable("Is airborne", &aConditions->IsAirborne, "Will be true when falling, gliding using an updraft, or after jumping.")) { stateIndex = 10; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_UNDERWATER"), &aConditions->IsUnderwater)) { stateIndex = 8; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_ON_WATER_SURFACE"), &aConditions->IsOnWaterSurface)) { stateIndex = 9; };
+			if (ConditionSelectable(Lang::T("RM_COND_IS_AIRBORNE"), &aConditions->IsAirborne, Lang::T("RM_TIP_AIRBORNE"))) { stateIndex = 10; };
 			
 			ImGui::EndTable();
 		}
 
 		if (aPreviousReq)
 		{
-			if (ImGui::Checkbox("Link with previous action", aPreviousReq))
+			if (ImGui::Checkbox(Lang::T("RM_CHK_LINK_WITH_PREVIOUS"), aPreviousReq))
 			{
 				HasChanges = true;
 			}
-			ImGui::HelpMarker("Besides the set conditions, setting this means that the previous action must have executed for this one to be able to.");
+			ImGui::HelpMarker(Lang::T("RM_TIP_LINK_WITH_PREVIOUS"));
 		}
 
 		if (!aApplyAllInfo.empty())
@@ -548,12 +550,12 @@ int ConditionEditor(std::string aName, Conditions* aConditions, std::string aApp
 			ImGui::TextDisabled(aApplyAllInfo.c_str());
 		}
 
-		if (ImGui::Button(("Apply all conditions to all##applyallcondstoall_whataname" + aName).c_str()))
+		if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_ALL_CONDITIONS")) + "##applyallcondstoall_whataname" + aName).c_str()))
 		{
 			stateIndex = -99;
 		}
 
-		if (ImGui::Button("Done##ConditionEditor"))
+		if (ImGui::Button((std::string(Lang::T("RM_BTN_DONE")) + "##ConditionEditor").c_str()))
 		{
 			ImGui::CloseCurrentPopup();
 		}
@@ -572,39 +574,39 @@ void CRadialContext::CreateDefaultMountRadial()
 	CRadialMenu* mounts = this->Add(PacksDirectory / "Mounts.json", "Mounts", ERadialType::Normal);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_RAPTOR.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_RAPTOR.png", ICON_RAPTOR, "PNG", true); }
-	mounts->AddItem("Raptor", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_RAPTOR.png");
+	mounts->AddItem("Raptor", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_RAPTOR.png");
 	mounts->AddItemAction("Raptor", EActionType::GameInputBind, EGameBinds_SpumoniMAM01);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SPRINGER.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SPRINGER.png", ICON_SPRINGER, "PNG", true); }
-	mounts->AddItem("Springer", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_SPRINGER.png");
+	mounts->AddItem("Springer", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SPRINGER.png");
 	mounts->AddItemAction("Springer", EActionType::GameInputBind, EGameBinds_SpumoniMAM02);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SKIMMER.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SKIMMER.png", ICON_SKIMMER, "PNG", true); }
-	mounts->AddItem("Skimmer", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_SKIMMER.png");
+	mounts->AddItem("Skimmer", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKIMMER.png");
 	mounts->AddItemAction("Skimmer", EActionType::GameInputBind, EGameBinds_SpumoniMAM03);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_JACKAL.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_JACKAL.png", ICON_JACKAL, "PNG", true); }
-	mounts->AddItem("Jackal", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_JACKAL.png");
+	mounts->AddItem("Jackal", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_JACKAL.png");
 	mounts->AddItemAction("Jackal", EActionType::GameInputBind, EGameBinds_SpumoniMAM04);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_GRIFFON.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_GRIFFON.png", ICON_GRIFFON, "PNG", true); }
-	mounts->AddItem("Griffon", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_GRIFFON.png");
+	mounts->AddItem("Griffon", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_GRIFFON.png");
 	mounts->AddItemAction("Griffon", EActionType::GameInputBind, EGameBinds_SpumoniMAM05);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_ROLLERBEETLE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_ROLLERBEETLE.png", ICON_ROLLERBEETLE, "PNG", true); }
-	mounts->AddItem("Roller Beetle", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_ROLLERBEETLE.png");
+	mounts->AddItem("Roller Beetle", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_ROLLERBEETLE.png");
 	mounts->AddItemAction("Roller Beetle", EActionType::GameInputBind, EGameBinds_SpumoniMAM06);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_WARCLAW.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_WARCLAW.png", ICON_WARCLAW, "PNG", true); }
-	mounts->AddItem("Warclaw", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_WARCLAW.png");
+	mounts->AddItem("Warclaw", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_WARCLAW.png");
 	mounts->AddItemAction("Warclaw", EActionType::GameInputBind, EGameBinds_SpumoniMAM07);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SKYSCALE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SKYSCALE.png", ICON_SKYSCALE, "PNG", true); }
-	mounts->AddItem("Skyscale", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_SKYSCALE.png");
+	mounts->AddItem("Skyscale", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKYSCALE.png");
 	mounts->AddItemAction("Skyscale", EActionType::GameInputBind, EGameBinds_SpumoniMAM08);
 
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SIEGETURTLE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SIEGETURTLE.png", ICON_SIEGETURTLE, "PNG", true); }
-	mounts->AddItem("Siege Turtle", col, colHov, EIconType::File, "addons\\RadialMenus\\icons\\ICON_SIEGETURTLE.png");
+	mounts->AddItem("Siege Turtle", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SIEGETURTLE.png");
 	mounts->AddItemAction("Siege Turtle", EActionType::GameInputBind, EGameBinds_SpumoniMAM09);
 
 	this->Save();
@@ -705,9 +707,9 @@ void CRadialContext::RenderEditorTab()
 {
 	float width = ImGui::GetWindowContentRegionWidth();
 
-	if (ImGui::BeginTabItem("Editor##radialmenus"))
+	if (ImGui::BeginTabItem((std::string(Lang::T("RM_TAB_EDITOR")) + "##radialmenus").c_str()))
 	{
-		if (ImGui::Button("Reload radials"))
+		if (ImGui::Button(Lang::T("RM_BTN_RELOAD_RADIALS")))
 		{
 			this->LoadInternal();
 		}
@@ -716,18 +718,18 @@ void CRadialContext::RenderEditorTab()
 		bool showChangeInfo = HasChanges;
 
 		if (showChangeInfo) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1)); }
-		if (ImGui::Button("Save changes"))
+		if (ImGui::Button(Lang::T("RM_BTN_SAVE_CHANGES")))
 		{
 			this->SaveInternal();
 		}
 		if (showChangeInfo) { ImGui::PopStyleColor(); }
 		ImGui::SameLine();
-		if (ImGui::Button("Open folder"))
+		if (ImGui::Button(Lang::T("RM_BTN_OPEN_FOLDER")))
 		{
 			ShellExecuteA(NULL, "explore", PacksDirectory.string().c_str(), NULL, NULL, SW_SHOW);
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("New radial"))
+		if (ImGui::Button(Lang::T("RM_BTN_NEW_RADIAL")))
 		{
 			std::thread([this]() {
 				OPENFILENAME ofn{};
@@ -766,7 +768,7 @@ void CRadialContext::RenderEditorTab()
 
 		if (showChangeInfo)
 		{
-			ImGui::TextColored(ImVec4(1, 1, 0, 1), "You might have unsaved changes.");
+			ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", Lang::T("RM_MSG_UNSAVED_CHANGES"));
 		}
 
 		std::lock_guard<std::mutex> uklock(UnboundKeysMutex);
@@ -791,17 +793,17 @@ void CRadialContext::RenderEditorTab()
 
 		if (UnboundKeys.size() > 0)
 		{
-			ImGui::TextColored(ImVec4(1, 1, 0, 1), "Some radial menus may not function as intended. Some binds are missing. (?)");
+			ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", Lang::T("RM_MSG_MISSING_BINDS"));
 			if (ImGui::IsItemHovered())
 			{
 				ImGui::BeginTooltip();
-				ImGui::Text("Set the missing binds in the Nexus Game Keybinds settings.\nThey should match the bind you are using in-game.");
-				ImGui::Text("Missing binds:");
+				ImGui::TextUnformatted(Lang::T("RM_TIP_MISSING_BINDS_1"));
+				ImGui::TextUnformatted(Lang::T("RM_TIP_MISSING_BINDS_2"));
 				for (auto& [bindId, users] : UnboundKeys)
 				{
-					ImGui::Text(APIDefs->Localization.Translate(GameBindToString(bindId).c_str()));
+					ImGui::Text("%s", APIDefs->Localization.Translate(GameBindToString(bindId).c_str()));
 					ImGui::SameLine();
-					std::string usersStr = "used by ";
+					std::string usersStr = Lang::T("RM_TIP_USED_BY");
 					for (size_t i = 0; i < users.size(); i++)
 					{
 						if (i == users.size() - 1)
@@ -813,7 +815,7 @@ void CRadialContext::RenderEditorTab()
 							usersStr.append(users[i] + ", ");
 						}
 					}
-					ImGui::TextDisabled(usersStr.c_str());
+					ImGui::TextDisabled("%s", usersStr.c_str());
 				}
 				ImGui::EndTooltip();
 			}
@@ -821,7 +823,7 @@ void CRadialContext::RenderEditorTab()
 
 		ImGui::BeginChild("##radialeditor", ImVec2(width / 6 * 2, 0));
 
-		ImGui::TextDisabled("Select Radial Menu:");
+		ImGui::TextDisabled("%s", Lang::T("RM_LBL_SELECT_RADIAL"));
 		std::string radDel;
 		for (CRadialMenu* radial : this->Radials)
 		{
@@ -830,7 +832,7 @@ void CRadialContext::RenderEditorTab()
 				std::string popupName = "RadialCtxMenu#" + radial->GetName();
 				if (ImGui::BeginPopupContextItem(popupName.c_str()))
 				{
-					if (ImGui::Button("Delete"))
+					if (ImGui::Button(Lang::T("RM_BTN_DELETE")))
 					{
 						radDel = radial->GetName();
 					}
@@ -838,7 +840,7 @@ void CRadialContext::RenderEditorTab()
 				}
 				ImGui::OpenPopupOnItemClick(popupName.c_str(), 1);
 
-				if (ImGui::Selectable(("Settings##" + radial->GetName()).c_str(), this->EditingMenu == radial && this->EditingItem == nullptr))
+				if (ImGui::Selectable((std::string(Lang::T("RM_LBL_SETTINGS")) + "##" + radial->GetName()).c_str(), this->EditingMenu == radial && this->EditingItem == nullptr))
 				{
 					this->EditingMenu = radial;
 					this->EditingItem = nullptr;
@@ -851,7 +853,7 @@ void CRadialContext::RenderEditorTab()
 				int i = 0;
 				for (RadialItem* item : items)
 				{
-					ImGui::TextDisabled("Item");
+					ImGui::TextDisabled("%s", Lang::T("RM_LBL_ITEM"));
 					ImGui::SameLine();
 					
 					float btnSz = ImGui::GetFrameHeight();
@@ -889,14 +891,14 @@ void CRadialContext::RenderEditorTab()
 					i++;
 				}
 
-				if (ImGui::Button(("Add New Item##" + radial->GetName()).c_str(), ImVec2(ImGui::GetWindowContentRegionWidth() - ImGui::GetCursorPosX(), 0)))
+				if (ImGui::Button((std::string(Lang::T("RM_BTN_ADD_NEW_ITEM")) + "##" + radial->GetName()).c_str(), ImVec2(ImGui::GetWindowContentRegionWidth() - ImGui::GetCursorPosX(), 0)))
 				{
 					radial->AddItem(std::string(), NORMAL_ITEM_COLOR, NORMAL_ITEM_COLOR_HOVER, EIconType::None, "");
 					HasChanges = true;
 				}
 				if (capacity < items.size())
 				{
-					ImGui::TextColored(ImColor(255, 255, 0, 255), "Only %d items will be drawn.", capacity);
+					ImGui::TextColored(ImColor(255, 255, 0, 255), Lang::T("RM_MSG_ONLY_N_ITEMS"), capacity);
 				}
 
 				ImGui::TreePop();
@@ -906,7 +908,7 @@ void CRadialContext::RenderEditorTab()
 				std::string popupName = "RadialCtxMenu#" + radial->GetName();
 				if (ImGui::BeginPopupContextItem(popupName.c_str()))
 				{
-					if (ImGui::Button("Delete"))
+					if (ImGui::Button(Lang::T("RM_BTN_DELETE")))
 					{
 						radDel = radial->GetName();
 					}
@@ -930,9 +932,9 @@ void CRadialContext::RenderEditorTab()
 		ImGui::BeginChild("##radialitemeditor", ImVec2(width / 6 * 4, 0));
 		if (this->EditingMenu && !this->EditingItem) /* editing general menu settings */
 		{
-			ImGui::TextDisabled("ID: %d", this->EditingMenu->GetID());
-			ImGui::TextDisabled("Path: %s", this->EditingMenu->GetPath().string().c_str());
-			ImGui::TextDisabled("Input Bind");
+			ImGui::TextDisabled(Lang::T("RM_LBL_ID"), this->EditingMenu->GetID());
+			ImGui::TextDisabled(Lang::T("RM_LBL_PATH"), this->EditingMenu->GetPath().string().c_str());
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_INPUT_BIND"));
 			bool modifiedBinds = false;
 			if (ImGui::BeginCombo("##radialinputbind", this->EditingMenu->GetInputBind().c_str()))
 			{
@@ -956,15 +958,15 @@ void CRadialContext::RenderEditorTab()
 				ImGui::EndCombo();
 			}
 			ImGui::SameLine();
-			ImGui::TextDisabled("shown as \"%s\"", this->EditingMenu->GetName().c_str());
+			ImGui::TextDisabled(Lang::T("RM_LBL_SHOWN_AS"), this->EditingMenu->GetName().c_str());
 
 			if (modifiedBinds)
 			{
 				this->GenerateIBMap();
 			}
 
-			ImGui::TextDisabled("Name");
-			ImGui::HelpMarker("This name has to be unique.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_NAME"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_NAME_UNIQUE"));
 
 			static bool editingName;
 			static char inputBuff[MAX_PATH];
@@ -990,27 +992,27 @@ void CRadialContext::RenderEditorTab()
 				}
 			}
 
-			ImGui::TextDisabled("Type");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_TYPE"));
 			std::string type;
 			switch (this->EditingMenu->GetType())
 			{
 				case ERadialType::Small:
-					type = "Small";
+					type = Lang::T("RM_TYPE_SMALL");
 					break;
 				case ERadialType::Normal:
-					type = "Normal";
+					type = Lang::T("RM_TYPE_NORMAL");
 					break;
 			}
 			if (ImGui::BeginCombo("##radialtype", type.c_str()))
 			{
-				if (ImGui::Selectable("Small"))
+				if (ImGui::Selectable(Lang::T("RM_TYPE_SMALL")))
 				{
 					this->EditingMenu->SetType(ERadialType::Small);
 					this->EditingMenu->ApplyColorToAll(SMALL_ITEM_COLOR, 1);
 					this->EditingMenu->ApplyColorToAll(SMALL_ITEM_COLOR_HOVER, 2);
 					HasChanges = true;
 				}
-				if (ImGui::Selectable("Normal"))
+				if (ImGui::Selectable(Lang::T("RM_TYPE_NORMAL")))
 				{
 					this->EditingMenu->SetType(ERadialType::Normal);
 					this->EditingMenu->ApplyColorToAll(NORMAL_ITEM_COLOR, 1);
@@ -1022,33 +1024,33 @@ void CRadialContext::RenderEditorTab()
 
 			if (this->EditingMenu->GetType() == ERadialType::Normal)
 			{
-				ImGui::TextDisabled("Inner Radius");
+				ImGui::TextDisabled("%s", Lang::T("RM_LBL_INNER_RADIUS"));
 				std::string radius;
 				switch (this->EditingMenu->GetGetInnerRadius())
 				{
 					case EInnerRadius::Small:
-						radius = "Small";
+						radius = Lang::T("RM_RADIUS_SMALL");
 						break;
 					case EInnerRadius::Medium:
-						radius = "Medium";
+						radius = Lang::T("RM_RADIUS_MEDIUM");
 						break;
 					case EInnerRadius::Big:
-						radius = "Big";
+						radius = Lang::T("RM_RADIUS_BIG");
 						break;
 				}
 				if (ImGui::BeginCombo("##radialradius", radius.c_str()))
 				{
-					if (ImGui::Selectable("Small"))
+					if (ImGui::Selectable(Lang::T("RM_RADIUS_SMALL")))
 					{
 						this->EditingMenu->SetInnerRadius(EInnerRadius::Small);
 						HasChanges = true;
 					}
-					if (ImGui::Selectable("Medium"))
+					if (ImGui::Selectable(Lang::T("RM_RADIUS_MEDIUM")))
 					{
 						this->EditingMenu->SetInnerRadius(EInnerRadius::Medium);
 						HasChanges = true;
 					}
-					if (ImGui::Selectable("Big"))
+					if (ImGui::Selectable(Lang::T("RM_RADIUS_BIG")))
 					{
 						this->EditingMenu->SetInnerRadius(EInnerRadius::Big);
 						HasChanges = true;
@@ -1057,118 +1059,118 @@ void CRadialContext::RenderEditorTab()
 				}
 			}
 
-			ImGui::TextDisabled("Scale");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_SCALE"));
 			if (ImGui::DragFloat("##radialscale", &this->EditingMenu->Scale, 0.01f, 0.1f, 5.0f, "%.2f"))
 			{
 				this->EditingMenu->Invalidate();
 				HasChanges = true;
 			}
 
-			ImGui::TextDisabled("Icon Scale");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_ICON_SCALE"));
 			if (ImGui::DragFloat("##radialiconscale", &this->EditingMenu->IconScale, 0.01f, 0.1f, 5.0f, "%.2f"))
 			{
 				this->EditingMenu->Invalidate();
 				HasChanges = true;
 			}
 
-			ImGui::TextDisabled("Selection Mode");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_SELECTION_MODE"));
 			std::string selMode;
 			ESelectionMode selectionMode = this->EditingMenu->GetSelectionMode();
 			switch (selectionMode)
 			{
 				case ESelectionMode::Click:
-					selMode = "Click";
+					selMode = Lang::T("RM_SELMODE_CLICK");
 					break;
 				case ESelectionMode::Release:
-					selMode = "Release";
+					selMode = Lang::T("RM_SELMODE_RELEASE");
 					break;
 				case ESelectionMode::ReleaseOrClick:
-					selMode = "Release / Click";
+					selMode = Lang::T("RM_SELMODE_RELEASE_CLICK");
 					break;
 				case ESelectionMode::Hover:
-					selMode = "Hover";
+					selMode = Lang::T("RM_SELMODE_HOVER");
 					break;
 			}
 			if (ImGui::BeginCombo("##radialselectionmode", selMode.c_str()))
 			{
-				if (ImGui::Selectable("Click"))
+				if (ImGui::Selectable(Lang::T("RM_SELMODE_CLICK")))
 				{
 					this->EditingMenu->SetSelectionMode(ESelectionMode::Click);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Left mouse button will select the element.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_SELMODE_CLICK"));
 
-				if (ImGui::Selectable("Release"))
+				if (ImGui::Selectable(Lang::T("RM_SELMODE_RELEASE")))
 				{
 					this->EditingMenu->SetSelectionMode(ESelectionMode::Release);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Releasing the input bind will select the element.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_SELMODE_RELEASE"));
 
-				if (ImGui::Selectable("Release / Click"))
+				if (ImGui::Selectable(Lang::T("RM_SELMODE_RELEASE_CLICK")))
 				{
 					this->EditingMenu->SetSelectionMode(ESelectionMode::ReleaseOrClick);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Releasing the input bind or left mouse button will select the element.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_SELMODE_RELEASE_CLICK"));
 
-				if (ImGui::Selectable("Hover"))
+				if (ImGui::Selectable(Lang::T("RM_SELMODE_HOVER")))
 				{
 					this->EditingMenu->SetSelectionMode(ESelectionMode::Hover);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Hovering over an element will immediately select it.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_SELMODE_HOVER"));
 
 				ImGui::EndCombo();
 			}
 
 			if (selectionMode == ESelectionMode::Hover)
 			{
-				ImGui::TextDisabled("Hover Timeout (milliseconds)");
+				ImGui::TextDisabled("%s", Lang::T("RM_LBL_HOVER_TIMEOUT"));
 				ImGui::SetNextItemWidth(ImGui::CalcItemWidth() / 2);
 				if (ImGui::InputInt("##radialhovertimeout", &this->EditingMenu->HoverTimeout))
 				{
 					HasChanges = true;
 				}
-				ImGui::HelpMarker("This timeout controls how long an item needs to be hovered before it gets activated.");
+				ImGui::HelpMarker(Lang::T("RM_TIP_HOVER_TIMEOUT"));
 			}
 
-			ImGui::TextDisabled("Center Behavior");
-			ImGui::HelpMarker("This setting controls what to do if no item is selected.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_CENTER_BEHAVIOR"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_CENTER_BEHAVIOR"));
 			std::string centerbehavior;
 			switch (this->EditingMenu->GetCenterBehavior())
 			{
 				case ECenterBehavior::None:
-					centerbehavior = "Do nothing.";
+					centerbehavior = Lang::T("RM_CENTER_NONE");
 					break;
 				case ECenterBehavior::FirstItemMatchingActivation:
-					centerbehavior = "Activate the first item, matching conditions.";
+					centerbehavior = Lang::T("RM_CENTER_FIRST");
 					break;
 				case ECenterBehavior::SpecificItem:
-					centerbehavior = "Execute a specific item.";
+					centerbehavior = Lang::T("RM_CENTER_SPECIFIC");
 					break;
 				case ECenterBehavior::LastUsed:
-					centerbehavior = "Execute a last activated item.";
+					centerbehavior = Lang::T("RM_CENTER_LASTUSED");
 					break;
 			}
 			if (ImGui::BeginCombo("##radialcenterbehavior", centerbehavior.c_str()))
 			{
-				if (ImGui::Selectable("Do nothing."))
+				if (ImGui::Selectable(Lang::T("RM_CENTER_NONE")))
 				{
 					this->EditingMenu->SetCenterBehavior(ECenterBehavior::None);
 					HasChanges = true;
 				}
-				if (ImGui::Selectable("Activate the first item, matching conditions."))
+				if (ImGui::Selectable(Lang::T("RM_CENTER_FIRST")))
 				{
 					this->EditingMenu->SetCenterBehavior(ECenterBehavior::FirstItemMatchingActivation);
 					HasChanges = true;
 				}
-				if (ImGui::Selectable("Execute a specific item."))
+				if (ImGui::Selectable(Lang::T("RM_CENTER_SPECIFIC")))
 				{
 					this->EditingMenu->SetCenterBehavior(ECenterBehavior::SpecificItem);
 					HasChanges = true;
 				}
-				if (ImGui::Selectable("Execute a last activated item."))
+				if (ImGui::Selectable(Lang::T("RM_CENTER_LASTUSED")))
 				{
 					this->EditingMenu->SetCenterBehavior(ECenterBehavior::LastUsed);
 					HasChanges = true;
@@ -1178,14 +1180,14 @@ void CRadialContext::RenderEditorTab()
 
 			if (this->EditingMenu->GetCenterBehavior() == ECenterBehavior::SpecificItem)
 			{
-				ImGui::TextDisabled("Specific Item Name");
-				ImGui::HelpMarker("This is the item that will be executed when not selecting any.");
+				ImGui::TextDisabled("%s", Lang::T("RM_LBL_SPECIFIC_ITEM"));
+				ImGui::HelpMarker(Lang::T("RM_TIP_SPECIFIC_ITEM"));
 
 				static bool editingSpecificItemName;
 				static char inputBuff[MAX_PATH];
 				if (!editingSpecificItemName)
 				{
-					if (ImGui::Button(this->EditingMenu->SpecificCenterItemName.empty() ? "(none)" : this->EditingMenu->SpecificCenterItemName.c_str()))
+					if (ImGui::Button(this->EditingMenu->SpecificCenterItemName.empty() ? Lang::T("RM_LBL_NONE") : this->EditingMenu->SpecificCenterItemName.c_str()))
 					{
 						editingSpecificItemName = true;
 						strcpy_s(inputBuff, this->EditingMenu->SpecificCenterItemName.c_str());
@@ -1202,29 +1204,29 @@ void CRadialContext::RenderEditorTab()
 				}
 			}
 
-			ImGui::TextDisabled("Items Rotation");
-			ImGui::HelpMarker("This controls the location of the items by rotating them.\nControl-Click to manually edit.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_ITEMS_ROTATION"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_ITEMS_ROTATION"));
 			ImGui::SetNextItemWidth(ImGui::CalcItemWidth() / 2);
 			if (ImGui::SliderInt("##radialitemrotation", &this->EditingMenu->ItemRotationDegrees, -180, 180))
 			{
 				HasChanges = true;
 			}
 
-			ImGui::Checkbox("Draw in Center", &this->EditingMenu->DrawInCenter);
+			ImGui::Checkbox(Lang::T("RM_CHK_DRAW_IN_CENTER"), &this->EditingMenu->DrawInCenter);
 			if (this->EditingMenu->DrawInCenter)
 			{
 				ImGui::BeginGroup();
 				ImGui::Indent();
-				ImGui::Checkbox("Do not set cursor to center on activation", &this->EditingMenu->DoNotCenterCursor);
+				ImGui::Checkbox(Lang::T("RM_CHK_NO_CENTER_CURSOR"), &this->EditingMenu->DoNotCenterCursor);
 				ImGui::EndGroup();
 			}
-			ImGui::Checkbox("Restore Cursor Position", &this->EditingMenu->RestoreCursor);
-			ImGui::Checkbox("Show Item Name Tooltips", &this->EditingMenu->ShowItemNameTooltip);
+			ImGui::Checkbox(Lang::T("RM_CHK_RESTORE_CURSOR"), &this->EditingMenu->RestoreCursor);
+			ImGui::Checkbox(Lang::T("RM_CHK_SHOW_TOOLTIPS"), &this->EditingMenu->ShowItemNameTooltip);
 		}
 		else if (this->EditingItem) /* editing sub item */
 		{
-			ImGui::TextDisabled("Name");
-			ImGui::HelpMarker("This name has to be unique.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_NAME"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_NAME_UNIQUE"));
 
 			static bool editingName;
 			static char inputBuff[MAX_PATH];
@@ -1246,8 +1248,8 @@ void CRadialContext::RenderEditorTab()
 				}
 			}
 
-			ImGui::TextDisabled("Priority");
-			ImGui::HelpMarker("This setting controls which item to activate on center, if multiple items match the conditions. Higher means higher priority.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_PRIORITY"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_PRIORITY"));
 			ImGui::SetNextItemWidth(ImGui::CalcItemWidth() / 2);
 			if (ImGui::InputInt("##priority", &this->EditingItem->Priority))
 			{
@@ -1258,56 +1260,56 @@ void CRadialContext::RenderEditorTab()
 			{
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
-				ImGui::TextDisabled("Color");
+				ImGui::TextDisabled("%s", Lang::T("RM_LBL_COLOR"));
 				if (ImGui::ColorEdit4U32("Color", &this->EditingItem->Color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
 				{
 					HasChanges = true;
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Apply to all##color"))
+				if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_TO_ALL")) + "##color").c_str()))
 				{
 					this->EditingMenu->ApplyColorToAll(this->EditingItem->Color, 1);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Applies this item's Color to all items Color in this Radial Menu.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_APPLY_COLOR_ALL"));
 
 				ImGui::TableSetColumnIndex(1);
-				ImGui::TextDisabled("Color Hover");
+				ImGui::TextDisabled("%s", Lang::T("RM_LBL_COLOR_HOVER"));
 				if (ImGui::ColorEdit4U32("Color Hover", &this->EditingItem->ColorHover, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
 				{
 					HasChanges = true;
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Apply to all##colorhover"))
+				if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_TO_ALL")) + "##colorhover").c_str()))
 				{
 					this->EditingMenu->ApplyColorToAll(this->EditingItem->ColorHover, 2);
 					HasChanges = true;
 				}
-				ImGui::TooltipGeneric("Applies this item's Hover Color to all items Hover Color in this Radial Menu.");
+				ImGui::TooltipGeneric(Lang::T("RM_TIP_APPLY_COLORHOVER_ALL"));
 
 				ImGui::EndTable();
 			}
 
-			ImGui::TextDisabled("Icon");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_ICON"));
 
 			std::string iconType;
 			switch (this->EditingItem->Icon.Type)
 			{
 				case EIconType::File:
-					iconType = "File";
+					iconType = Lang::T("RM_ICON_FILE");
 					break;
 				case EIconType::URL:
-					iconType = "URL";
+					iconType = Lang::T("RM_ICON_URL");
 					break;
 			}
 			if (ImGui::BeginCombo("##radialitemicontype", iconType.c_str()))
 			{
-				if (ImGui::Selectable("File"))
+				if (ImGui::Selectable(Lang::T("RM_ICON_FILE")))
 				{
 					this->EditingItem->Icon.Type = EIconType::File;
 					HasChanges = true;
 				}
-				if (ImGui::Selectable("URL"))
+				if (ImGui::Selectable(Lang::T("RM_ICON_URL")))
 				{
 					this->EditingItem->Icon.Type = EIconType::URL;
 					HasChanges = true;
@@ -1383,9 +1385,9 @@ void CRadialContext::RenderEditorTab()
 				}
 			}
 
-			ImGui::TextDisabled("Visibility");
-			ImGui::HelpMarker("These conditions control when this item is visible.");
-			int applyVisToAll = ConditionEditor("Edit Conditions##visibility", &this->EditingItem->Visibility, "\"Apply to all\" will affect the visibility of all items in this radial.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_VISIBILITY"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_VISIBILITY"));
+			int applyVisToAll = ConditionEditor(std::string(Lang::T("RM_BTN_EDIT_CONDITIONS")) + "##visibility", &this->EditingItem->Visibility, Lang::T("RM_TIP_APPLYALL_VISIBILITY"));
 			if (applyVisToAll > -1 || applyVisToAll == -99)
 			{
 				this->EditingMenu->ApplyConditionToAll(&this->EditingItem->Visibility, 1, applyVisToAll);
@@ -1393,9 +1395,9 @@ void CRadialContext::RenderEditorTab()
 			}
 			ImGui::TooltipGeneric(ConditionsToString(&this->EditingItem->Visibility).c_str());
 
-			ImGui::TextDisabled("Activation");
-			ImGui::HelpMarker("These conditions control whether to queue the item until they are met or if it can be immediately activated.");
-			int applyActToAll = ConditionEditor("Edit Conditions##activation", &this->EditingItem->Activation, "\"Apply to all\" will affect the activation of all items in this radial.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_ACTIVATION"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_ACTIVATION"));
+			int applyActToAll = ConditionEditor(std::string(Lang::T("RM_BTN_EDIT_CONDITIONS")) + "##activation", &this->EditingItem->Activation, Lang::T("RM_TIP_APPLYALL_ACTIVATION"));
 			if (applyActToAll > -1 || applyActToAll == -99)
 			{
 				this->EditingMenu->ApplyConditionToAll(&this->EditingItem->Activation, 2, applyActToAll);
@@ -1403,26 +1405,26 @@ void CRadialContext::RenderEditorTab()
 			}
 			ImGui::TooltipGeneric(ConditionsToString(&this->EditingItem->Activation).c_str());
 
-			ImGui::TextDisabled("Timeout (seconds)");
-			ImGui::HelpMarker("This timeout controls how long to wait for until the conditions are met before aborting.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_TIMEOUT_SECONDS"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_TIMEOUT"));
 			ImGui::SetNextItemWidth(ImGui::CalcItemWidth() / 2);
 			if (ImGui::InputInt("##activationtimeout", &this->EditingItem->ActivationTimeout))
 			{
 				HasChanges = true;
 			}
 			ImGui::SameLine();
-			if (ImGui::Button("Apply to all##applyallactivationtimeout"))
+			if (ImGui::Button((std::string(Lang::T("RM_BTN_APPLY_TO_ALL")) + "##applyallactivationtimeout").c_str()))
 			{
 				this->EditingMenu->ApplyActivationTimeoutToAll(this->EditingItem->ActivationTimeout);
 				HasChanges = true;
 			}
 
-			ImGui::TextDisabled("Actions");
-			ImGui::HelpMarker("This sequence of actions will be executed in order when selecting the item.\nSelecting another item cancels execution.");
+			ImGui::TextDisabled("%s", Lang::T("RM_LBL_ACTIONS"));
+			ImGui::HelpMarker(Lang::T("RM_TIP_ACTIONS"));
 
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-			ImGui::TextWrapped("By using this editor you acknowledge to have read and understood the official Macro Policy.");
-			if (ImGui::TextURL("You can read it here.", false, false))
+			ImGui::TextWrapped("%s", Lang::T("RM_MSG_MACRO_POLICY"));
+			if (ImGui::TextURL(Lang::T("RM_LBL_MACRO_POLICY_LINK"), false, false))
 			{
 				ShellExecuteA(0, 0, "https://help.guildwars2.com/hc/en-us/articles/360013762153-Policy-Macros-and-Macro-Use", 0, 0, SW_SHOW);
 			}
@@ -1443,20 +1445,20 @@ void CRadialContext::RenderEditorTab()
 					std::string actionType;
 					switch (action->Type)
 					{
-						case EActionType::InputBind: actionType = "InputBind (Nexus)"; break;
-						case EActionType::GameInputBind: actionType = "InputBind (Game)"; break;
-						case EActionType::GameInputBindPress: actionType = "InputBind Press (Game)"; break;
-						case EActionType::GameInputBindRelease: actionType = "InputBind Release (Game)"; break;
-						case EActionType::Event: actionType = "Event"; break;
-						case EActionType::Delay: actionType = "Delay"; break;
-						case EActionType::Return: actionType = "Return"; break;
+						case EActionType::InputBind: actionType = Lang::T("RM_ACTION_INPUTBIND_NEXUS"); break;
+						case EActionType::GameInputBind: actionType = Lang::T("RM_ACTION_INPUTBIND_GAME"); break;
+						case EActionType::GameInputBindPress: actionType = Lang::T("RM_ACTION_INPUTBIND_PRESS_GAME"); break;
+						case EActionType::GameInputBindRelease: actionType = Lang::T("RM_ACTION_INPUTBIND_RELEASE_GAME"); break;
+						case EActionType::Event: actionType = Lang::T("RM_ACTION_EVENT"); break;
+						case EActionType::Delay: actionType = Lang::T("RM_ACTION_DELAY"); break;
+						case EActionType::Return: actionType = Lang::T("RM_ACTION_RETURN"); break;
 					}
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
 					ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
 					if (ImGui::BeginCombo(("##radialitemactiontype" + std::to_string(i)).c_str(), actionType.c_str()))
 					{
-						if (ImGui::Selectable("InputBind (Nexus)"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_INPUTBIND_NEXUS")))
 						{
 							if (action->Type != EActionType::InputBind)
 							{
@@ -1466,7 +1468,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("InputBind (Game)"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_INPUTBIND_GAME")))
 						{
 							if (action->Type != EActionType::GameInputBind)
 							{
@@ -1486,7 +1488,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("InputBind Press (Game)"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_INPUTBIND_PRESS_GAME")))
 						{
 							if (action->Type != EActionType::GameInputBindPress)
 							{
@@ -1506,7 +1508,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("InputBind Release (Game)"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_INPUTBIND_RELEASE_GAME")))
 						{
 							if (action->Type != EActionType::GameInputBindRelease)
 							{
@@ -1526,7 +1528,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("Event"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_EVENT")))
 						{
 							if (action->Type != EActionType::Event)
 							{
@@ -1536,7 +1538,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("Delay"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_DELAY")))
 						{
 							if (action->Type != EActionType::Delay)
 							{
@@ -1546,7 +1548,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						if (ImGui::Selectable("Return"))
+						if (ImGui::Selectable(Lang::T("RM_ACTION_RETURN")))
 						{
 							if (action->Type != EActionType::Return)
 							{
@@ -1556,7 +1558,7 @@ void CRadialContext::RenderEditorTab()
 								HasChanges = true;
 							}
 						}
-						ImGui::TooltipGeneric("Return prevents the execution of any further actions.\nUseful when linked with previous conditional actions.");
+						ImGui::TooltipGeneric(Lang::T("RM_TIP_ACTION_RETURN"));
 						ImGui::EndCombo();
 					}
 
@@ -1833,7 +1835,7 @@ void CRadialContext::RenderEditorTab()
 
 					ImGui::TableSetColumnIndex(2);
 					ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-					int applyActionActToAll = ConditionEditor("Edit Conditions##conditionalactivation" + std::to_string(i), &action->Activation, "\"Apply to all\" will affect of all actions in this item.", &action->OnlyExecuteIfPrevious);
+					int applyActionActToAll = ConditionEditor(std::string(Lang::T("RM_BTN_EDIT_CONDITIONS")) + "##conditionalactivation" + std::to_string(i), &action->Activation, Lang::T("RM_TIP_APPLYALL_ACTION"), &action->OnlyExecuteIfPrevious);
 					if (applyActionActToAll > -1 || applyActionActToAll == -99)
 					{
 						this->EditingMenu->ApplyConditionToAll(this->EditingItem, &action->Activation, applyActionActToAll);
@@ -1870,7 +1872,7 @@ void CRadialContext::RenderEditorTab()
 				ImGui::EndTable();
 			}
 
-			if (ImGui::Button("Add Action"))
+			if (ImGui::Button(Lang::T("RM_BTN_ADD_ACTION")))
 			{
 				this->EditingMenu->AddItemAction(this->EditingItem->Identifier, EActionType::InputBind, "");
 				HasChanges = true;
@@ -1889,12 +1891,12 @@ void CRadialContext::RenderEditorTab()
 
 void CRadialContext::RenderSettingsTab()
 {
-	if (ImGui::BeginTabItem("Settings##radialmenus"))
+	if (ImGui::BeginTabItem((std::string(Lang::T("RM_TAB_SETTINGS")) + "##radialmenus").c_str()))
 	{
-		ImGui::TextDisabled("Widget");
-		ImGui::HelpMarker("The widget indicates the currently queued action.\nIt has a circular countdown, waiting for the action to start execution.\n\nYou can left-click to refresh the countdown or right-click to cancel the action.");
+		ImGui::TextDisabled("%s", Lang::T("RM_LBL_WIDGET"));
+		ImGui::HelpMarker(Lang::T("RM_TIP_WIDGET"));
 
-		ImGui::Checkbox("Edit position##radialmenus_widget", &this->ItemProcessor.IsEditing);
+		ImGui::Checkbox((std::string(Lang::T("RM_CHK_EDIT_POSITION")) + "##radialmenus_widget").c_str(), &this->ItemProcessor.IsEditing);
 
 		ImGui::EndTabItem();
 	}
@@ -1909,7 +1911,7 @@ void CRadialContext::RenderOptions()
 		RenderEditorTab();
 		RenderSettingsTab();
 
-		if (ImGui::BeginTabItem("Debug##radialmenus"))
+		if (ImGui::BeginTabItem((std::string(Lang::T("RM_TAB_DEBUG")) + "##radialmenus").c_str()))
 		{
 			StateObserver::RenderDebug();
 			ImGui::EndTabItem();
@@ -2018,7 +2020,7 @@ void CRadialContext::LoadInternal()
 
 		try
 		{
-			std::ifstream file(filePath);
+			std::ifstream file(filePath.string());
 
 			const json radialData = json::parse(file);
 			
@@ -2174,7 +2176,7 @@ void CRadialContext::LoadInternal()
 			}
 			this->GenerateIBMap();
 			this->SaveInternal();
-			APIDefs->UI.SendAlert("Some Radial bindings might have changed due to ID conflicts.");
+			APIDefs->UI.SendAlert(Lang::T("RM_ALERT_ID_CONFLICT"));
 		}
 	}
 

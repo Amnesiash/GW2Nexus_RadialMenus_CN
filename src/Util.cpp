@@ -190,7 +190,7 @@ namespace Resources
 				std::filesystem::remove(aPath);
 			}
 
-			std::ofstream file(aPath, aIsBinary ? std::ios::binary : 0);
+			std::ofstream file(aPath.string(), aIsBinary ? std::ios::binary : std::ios::out);
 			file.write((const char*)res, sz);
 			file.close();
 		}

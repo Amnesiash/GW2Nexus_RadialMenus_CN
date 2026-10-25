@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <thread>
 
 #include "imgui_extensions.h"
 #include "nlohmann/json.hpp"
@@ -165,7 +166,7 @@ void CRadialMenu::Save()
 		radialJSON["Items"].push_back(itemJSON);
 	}
 
-	std::ofstream file(this->Path);
+	std::ofstream file(this->Path.string());
 	file << radialJSON.dump(1, '\t') << std::endl;
 	file.close();
 }
@@ -856,7 +857,7 @@ int CRadialMenu::GetCapacity()
 
 std::string CRadialMenu::GetInputBind()
 {
-	return "KB_RADIAL" + std::to_string(this->ID);
+	return "KB_RADIAL_CN" + std::to_string(this->ID);
 }
 
 std::filesystem::path CRadialMenu::GetPath()

@@ -8,6 +8,8 @@
 
 #include "Addon.h"
 
+#include <thread>
+
 #include "imgui/imgui.h"
 
 #include "RTAPI/RTAPI.hpp"
@@ -46,9 +48,9 @@ namespace Addon
 		}
 
 		GW2Root = APIDefs->Paths.GetGameDirectory();
-		AddonDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus");
-		PacksDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus\\packs");
-		IconsDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus\\icons");
+		AddonDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus_CN");
+		PacksDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus_CN\\packs");
+		IconsDirectory = APIDefs->Paths.GetAddonDirectory("RadialMenus_CN\\icons");
 
 		bool firstInstall = false;
 		if (!std::filesystem::exists(AddonDirectory))

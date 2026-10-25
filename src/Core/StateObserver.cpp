@@ -10,6 +10,7 @@
 
 #include "Shared.h"
 #include "Util.h"
+#include "Language.h"
 
 #define JUMP_DURATION_MS 800
 #define DISMOUNT_DURATION_MS 700
@@ -285,41 +286,41 @@ namespace StateObserver
 		{
 			default:
 			case EObserveMount::Any:
-				state = "Any Mount";
+				state = Lang::T("RM_MOUNT_ANY");
 				break;
 			case EObserveMount::Either:
 			case EObserveMount::NotMounted:
-				state = "Not Mounted";
+				state = Lang::T("RM_MOUNT_NOT");
 				break;
 			case EObserveMount::Jackal:
-				state = "Jackal";
+				state = Lang::T("RM_MOUNT_JACKAL");
 				break;
 			case EObserveMount::Griffon:
-				state = "Griffon";
+				state = Lang::T("RM_MOUNT_GRIFFON");
 				break;
 			case EObserveMount::Springer:
-				state = "Springer";
+				state = Lang::T("RM_MOUNT_SPRINGER");
 				break;
 			case EObserveMount::Skimmer:
-				state = "Skimmer";
+				state = Lang::T("RM_MOUNT_SKIMMER");
 				break;
 			case EObserveMount::Raptor:
-				state = "Raptor";
+				state = Lang::T("RM_MOUNT_RAPTOR");
 				break;
 			case EObserveMount::RollerBeetle:
-				state = "Roller Beetle";
+				state = Lang::T("RM_MOUNT_ROLLERBEETLE");
 				break;
 			case EObserveMount::Warclaw:
-				state = "Warclaw";
+				state = Lang::T("RM_MOUNT_WARCLAW");
 				break;
 			case EObserveMount::Skyscale:
-				state = "Skyscale";
+				state = Lang::T("RM_MOUNT_SKYSCALE");
 				break;
 			case EObserveMount::Skiff:
-				state = "Skiff";
+				state = Lang::T("RM_MOUNT_SKIFF");
 				break;
 			case EObserveMount::SiegeTurtle:
-				state = "SiegeTurtle";
+				state = Lang::T("RM_MOUNT_SIEGETURTLE");
 				break;
 		}
 		return state;
@@ -331,28 +332,28 @@ namespace StateObserver
 
 		ImGui::Separator();
 
-		ImGui::Text("Falling: %s", IsFalling ? "true" : "false");
-		ImGui::Text("Gliding: %s", IsGliding ? "true" : "false");
-		ImGui::Text("Ascending: %s", IsAscending ? "true" : "false");
-		ImGui::Text("Jumping: %s", IsJumping ? "true" : "false");
-		ImGui::Text("Dismounting: %s", IsDismounting ? "true" : "false");
+		ImGui::Text(Lang::T("RM_DBG_FALLING"), IsFalling ? "true" : "false");
+		ImGui::Text(Lang::T("RM_DBG_GLIDING"), IsGliding ? "true" : "false");
+		ImGui::Text(Lang::T("RM_DBG_ASCENDING"), IsAscending ? "true" : "false");
+		ImGui::Text(Lang::T("RM_DBG_JUMPING"), IsJumping ? "true" : "false");
+		ImGui::Text(Lang::T("RM_DBG_DISMOUNTING"), IsDismounting ? "true" : "false");
 
 		ImGui::Separator();
 
-		ImGui::Text("IsCombat: %s", StateToString(CurrentState.IsCombat).c_str());
-		ImGui::Text("IsMounted: %s", StateToString(CurrentState.IsMounted).c_str());
-		ImGui::Text("IsCommander: %s", StateToString(CurrentState.IsCommander).c_str());
-		ImGui::Text("IsCompetitive: %s", StateToString(CurrentState.IsCompetitive).c_str());
-		ImGui::Text("IsMapOpen: %s", StateToString(CurrentState.IsMapOpen).c_str());
-		ImGui::Text("IsTextboxActive: %s", StateToString(CurrentState.IsTextboxActive).c_str());
-		ImGui::Text("IsInstance: %s", StateToString(CurrentState.IsInstance).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISCOMBAT"), StateToString(CurrentState.IsCombat).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISMOUNTED"), StateToString(CurrentState.IsMounted).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISCOMMANDER"), StateToString(CurrentState.IsCommander).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISCOMPETITIVE"), StateToString(CurrentState.IsCompetitive).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISMAPOPEN"), StateToString(CurrentState.IsMapOpen).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISTEXTBOX"), StateToString(CurrentState.IsTextboxActive).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISINSTANCE"), StateToString(CurrentState.IsInstance).c_str());
 
 		/* derived game states */
-		ImGui::Text("IsGameplay: %s", StateToString(CurrentState.IsGameplay).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISGAMEPLAY"), StateToString(CurrentState.IsGameplay).c_str());
 
 		/* derived positional states */
-		ImGui::Text("IsUnderwater: %s", StateToString(CurrentState.IsUnderwater).c_str());
-		ImGui::Text("IsOnWaterSurface: %s", StateToString(CurrentState.IsOnWaterSurface).c_str());
-		ImGui::Text("IsAirborne: %s", StateToString(CurrentState.IsAirborne).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISUNDERWATER"), StateToString(CurrentState.IsUnderwater).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISONWATER"), StateToString(CurrentState.IsOnWaterSurface).c_str());
+		ImGui::Text(Lang::T("RM_DBG_ISAIRBORNE"), StateToString(CurrentState.IsAirborne).c_str());
 	}
 }
