@@ -1898,6 +1898,23 @@ void CRadialContext::RenderSettingsTab()
 
 		ImGui::Checkbox((std::string(Lang::T("RM_CHK_EDIT_POSITION")) + "##radialmenus_widget").c_str(), &this->ItemProcessor.IsEditing);
 
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		// Interface language. Labels are never translated so the choice stays
+		// readable in either language.
+		static constexpr const char* kLanguageLabels[] = { "简体中文", "English" };
+		int languageIndex = Lang::ToSettingsValue(Lang::Current());
+		ImGui::TextDisabled("%s", Lang::T("RM_LBL_LANGUAGE"));
+		ImGui::HelpMarker(Lang::T("RM_TIP_LANGUAGE"));
+		if (ImGui::Combo("##radialmenus_language", &languageIndex, kLanguageLabels, 2))
+		{
+			const Lang::RMLanguage chosen = Lang::FromSettingsValue(languageIndex);
+			Lang::SetLanguage(chosen);
+			Lang::SaveConfig();
+		}
+
 		ImGui::EndTabItem();
 	}
 }

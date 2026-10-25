@@ -3,39 +3,84 @@
 
 #include "Nexus/Nexus.h"
 
+#include <string>
+#include <unordered_map>
+#include <utility>
+
 extern AddonAPI* APIDefs;
 
 ///----------------------------------------------------------------------------------------------------
 /// Lang Namespace
 /// 	Localization for the Radial Menus addon.
 /// 	Translations are registered through the Nexus localization API on load.
-/// 	"en" is the fallback language, "cn" is Simplified Chinese (Nexus language id).
+/// 	"en" is English, "cn" is Simplified Chinese (Nexus language id).
+/// 	An in-addon language switch (ChineseSimplified / English) overrides the
+/// 	displayed language regardless of the Nexus UI language.
 ///----------------------------------------------------------------------------------------------------
 namespace Lang
 {
 	///----------------------------------------------------------------------------------------------------
+	/// RMLanguage:
+	/// 	UI language selectable from the addon settings.
+	/// 	Chinese Simplified is the default; English stays selectable at runtime.
+	///----------------------------------------------------------------------------------------------------
+	enum class RMLanguage
+	{
+		ChineseSimplified = 0,
+		English = 1,
+	};
+
+	inline constexpr RMLanguage kDefaultLanguage = RMLanguage::ChineseSimplified;
+
+	RMLanguage FromSettingsValue(int aValue);
+	int ToSettingsValue(RMLanguage aLanguage);
+
+	void SetLanguage(RMLanguage aLanguage);
+	RMLanguage Current();
+
+	/// Forward declarations so the inline functions below can reference shared
+	/// state helpers defined later in this file.
+	std::unordered_map<std::string, std::pair<std::string, std::string>>& GetEntries();
+	RMLanguage& GetLanguage();
+
+	///----------------------------------------------------------------------------------------------------
 	/// T:
-	/// 	Translates an identifier into the user's current Nexus language.
+	/// 	Translates an identifier into the active in-addon language.
+	/// 	English is returned when the user selected English, otherwise the
+	/// 	Simplified Chinese text is returned. Falls back to the identifier
+	/// 	itself when no translation is registered (avoids null dereference).
 	///----------------------------------------------------------------------------------------------------
 	inline const char* T(const char* aIdentifier)
 	{
 		if (aIdentifier == nullptr) { return ""; }
-		if (APIDefs == nullptr || APIDefs->Localization.Translate == nullptr) { return aIdentifier; }
 
-		/* Nexus 未注册该标识符时 Translate 可能返回 nullptr，
-		   直接传给 ImGui::Text 或 std::string 会触发空指针崩溃，故兜底返回标识符本身 */
-		const char* translated = APIDefs->Localization.Translate(aIdentifier);
-		return translated != nullptr ? translated : aIdentifier;
+		static const auto& s_entries = GetEntries();
+		auto it = s_entries.find(aIdentifier);
+		if (it != s_entries.end())
+		{
+			const std::string& value = (Current() == RMLanguage::English)
+				? it->second.first
+				: it->second.second;
+			return value.c_str();
+		}
+
+		/* No in-addon entry: fall back to Nexus translation (or the identifier). */
+		if (APIDefs != nullptr && APIDefs->Localization.Translate != nullptr)
+		{
+			const char* translated = APIDefs->Localization.Translate(aIdentifier);
+			if (translated != nullptr) { return translated; }
+		}
+		return aIdentifier;
 	}
 
 	///----------------------------------------------------------------------------------------------------
 	/// Init:
-	/// 	Registers all English and Simplified Chinese texts.
+	/// 	Registers all English and Simplified Chinese texts with Nexus, and
+	/// 	caches them locally so the in-addon language switch can serve them
+	/// 	without depending on the Nexus UI language.
 	///----------------------------------------------------------------------------------------------------
 	inline void Init(LOCALIZATION_SET aSetterFunc)
 	{
-		if (aSetterFunc == nullptr) { return; }
-
 		struct Entry
 		{
 			const char* Id;
@@ -222,6 +267,10 @@ namespace Lang
 			{ "RM_LBL_WIDGET", "Widget", "小部件" },
 			{ "RM_TIP_WIDGET", "The widget indicates the currently queued action.\nIt has a circular countdown, waiting for the action to start execution.\n\nYou can left-click to refresh the countdown or right-click to cancel the action.", "小部件指示当前排队中的动作。\n它带有一个环形倒计时，等待动作开始执行。\n\n左键可刷新倒计时，右键可取消该动作。" },
 			{ "RM_CHK_EDIT_POSITION", "Edit position", "编辑位置" },
+			{ "RM_LBL_LANGUAGE", "Interface language", "界面语言" },
+			{ "RM_LBL_LANGUAGE_CN", "简体中文", "简体中文" },
+			{ "RM_LBL_LANGUAGE_EN", "English", "English" },
+			{ "RM_TIP_LANGUAGE", "Restart the addon if any text stays untranslated after switching.", "切换语言后若有文本未更新，请重载插件。" },
 
 			/* debug tab */
 			{ "RM_DBG_FALLING", "Falling: %s", "下落：%s" },
@@ -242,12 +291,66 @@ namespace Lang
 			{ "RM_DBG_ISAIRBORNE", "IsAirborne: %s", "滞空：%s" }
 		};
 
+		auto& entries = GetEntries();
+		entries.clear();
 		for (const Entry& e : Entries)
 		{
-			aSetterFunc(e.Id, "en", e.En);
-			aSetterFunc(e.Id, "cn", e.Cn);
+			if (aSetterFunc != nullptr)
+			{
+				aSetterFunc(e.Id, "en", e.En);
+				aSetterFunc(e.Id, "cn", e.Cn);
+			}
+			entries[e.Id] = std::make_pair(std::string(e.En), std::string(e.Cn));
 		}
 	}
+
+	///----------------------------------------------------------------------------------------------------
+	/// GetEntries / GetLanguage:
+	/// 	Meyers-singleton state. A function-local static inside an inline
+	/// 	function is guaranteed to be a single instance across all TUs, so the
+	/// 	translation table and the active language are shared everywhere.
+	///----------------------------------------------------------------------------------------------------
+	inline std::unordered_map<std::string, std::pair<std::string, std::string>>& GetEntries()
+	{
+		static std::unordered_map<std::string, std::pair<std::string, std::string>> s_entries;
+		return s_entries;
+	}
+
+	inline RMLanguage& GetLanguage()
+	{
+		static RMLanguage s_language = kDefaultLanguage;
+		return s_language;
+	}
+
+	inline RMLanguage FromSettingsValue(int aValue)
+	{
+		return aValue == 1 ? RMLanguage::English : RMLanguage::ChineseSimplified;
+	}
+
+	inline int ToSettingsValue(RMLanguage aLanguage)
+	{
+		return aLanguage == RMLanguage::English ? 1 : 0;
+	}
+
+	inline void SetLanguage(RMLanguage aLanguage)
+	{
+		GetLanguage() = aLanguage;
+	}
+
+	inline RMLanguage Current()
+	{
+		return GetLanguage();
+	}
+
+	///----------------------------------------------------------------------------------------------------
+	/// SetConfigPath / LoadConfig / SaveConfig:
+	/// 	Persists the selected UI language to <AddonDirectory>/config.json so the
+	/// 	choice survives an addon reload. SetConfigPath must be called once
+	/// 	during load (with the addon directory) before LoadConfig/SaveConfig.
+	///----------------------------------------------------------------------------------------------------
+	void SetConfigPath(const std::string& aDirectory);
+	void LoadConfig();
+	void SaveConfig();
 }
 
 #endif

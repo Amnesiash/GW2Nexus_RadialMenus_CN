@@ -15,6 +15,7 @@
 #include "RTAPI/RTAPI.hpp"
 
 #include "Language.h"
+#include "LocaleFont.h"
 #include "Shared.h"
 #include "StateObserver.h"
 
@@ -65,7 +66,10 @@ namespace Addon
 		APIDefs->Events.Subscribe("EV_ADDON_LOADED", (EVENT_CONSUME)OnAddonLoaded);
 		APIDefs->Events.Subscribe("EV_ADDON_UNLOADED", (EVENT_CONSUME)OnAddonUnloaded);
 
+		Lang::SetConfigPath(AddonDirectory.string());
+		Lang::LoadConfig();
 		Lang::Init(APIDefs->Localization.Set);
+		Lang::RegisterCjkFont(APIDefs);
 		RadialCtx = new CRadialContext();
 		RadialCtx->Load();
 
