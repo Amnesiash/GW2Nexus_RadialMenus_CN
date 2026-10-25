@@ -573,41 +573,52 @@ void CRadialContext::CreateDefaultMountRadial()
 
 	CRadialMenu* mounts = this->Add(PacksDirectory / "Mounts.json", "Mounts", ERadialType::Normal);
 
+	/* 预设条目名称走本地化：默认简体中文（国服译名），切换为英文时显示英文名。
+	   名称同时作为 AddItemAction 的条目 key，故两处复用同一个变量以保证匹配。 */
+	const char* nameRaptor = Lang::T("RM_MOUNT_RAPTOR");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_RAPTOR.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_RAPTOR.png", ICON_RAPTOR, "PNG", true); }
-	mounts->AddItem("Raptor", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_RAPTOR.png");
-	mounts->AddItemAction("Raptor", EActionType::GameInputBind, EGameBinds_SpumoniMAM01);
+	mounts->AddItem(nameRaptor, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_RAPTOR.png");
+	mounts->AddItemAction(nameRaptor, EActionType::GameInputBind, EGameBinds_SpumoniMAM01);
 
+	const char* nameSpringer = Lang::T("RM_MOUNT_SPRINGER");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SPRINGER.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SPRINGER.png", ICON_SPRINGER, "PNG", true); }
-	mounts->AddItem("Springer", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SPRINGER.png");
-	mounts->AddItemAction("Springer", EActionType::GameInputBind, EGameBinds_SpumoniMAM02);
+	mounts->AddItem(nameSpringer, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SPRINGER.png");
+	mounts->AddItemAction(nameSpringer, EActionType::GameInputBind, EGameBinds_SpumoniMAM02);
 
+	const char* nameSkimmer = Lang::T("RM_MOUNT_SKIMMER");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SKIMMER.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SKIMMER.png", ICON_SKIMMER, "PNG", true); }
-	mounts->AddItem("Skimmer", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKIMMER.png");
-	mounts->AddItemAction("Skimmer", EActionType::GameInputBind, EGameBinds_SpumoniMAM03);
+	mounts->AddItem(nameSkimmer, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKIMMER.png");
+	mounts->AddItemAction(nameSkimmer, EActionType::GameInputBind, EGameBinds_SpumoniMAM03);
 
+	const char* nameJackal = Lang::T("RM_MOUNT_JACKAL");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_JACKAL.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_JACKAL.png", ICON_JACKAL, "PNG", true); }
-	mounts->AddItem("Jackal", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_JACKAL.png");
-	mounts->AddItemAction("Jackal", EActionType::GameInputBind, EGameBinds_SpumoniMAM04);
+	mounts->AddItem(nameJackal, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_JACKAL.png");
+	mounts->AddItemAction(nameJackal, EActionType::GameInputBind, EGameBinds_SpumoniMAM04);
 
+	const char* nameGriffon = Lang::T("RM_MOUNT_GRIFFON");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_GRIFFON.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_GRIFFON.png", ICON_GRIFFON, "PNG", true); }
-	mounts->AddItem("Griffon", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_GRIFFON.png");
-	mounts->AddItemAction("Griffon", EActionType::GameInputBind, EGameBinds_SpumoniMAM05);
+	mounts->AddItem(nameGriffon, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_GRIFFON.png");
+	mounts->AddItemAction(nameGriffon, EActionType::GameInputBind, EGameBinds_SpumoniMAM05);
 
+	const char* nameRollerBeetle = Lang::T("RM_MOUNT_ROLLERBEETLE");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_ROLLERBEETLE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_ROLLERBEETLE.png", ICON_ROLLERBEETLE, "PNG", true); }
-	mounts->AddItem("Roller Beetle", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_ROLLERBEETLE.png");
-	mounts->AddItemAction("Roller Beetle", EActionType::GameInputBind, EGameBinds_SpumoniMAM06);
+	mounts->AddItem(nameRollerBeetle, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_ROLLERBEETLE.png");
+	mounts->AddItemAction(nameRollerBeetle, EActionType::GameInputBind, EGameBinds_SpumoniMAM06);
 
+	const char* nameWarclaw = Lang::T("RM_MOUNT_WARCLAW");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_WARCLAW.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_WARCLAW.png", ICON_WARCLAW, "PNG", true); }
-	mounts->AddItem("Warclaw", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_WARCLAW.png");
-	mounts->AddItemAction("Warclaw", EActionType::GameInputBind, EGameBinds_SpumoniMAM07);
+	mounts->AddItem(nameWarclaw, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_WARCLAW.png");
+	mounts->AddItemAction(nameWarclaw, EActionType::GameInputBind, EGameBinds_SpumoniMAM07);
 
+	const char* nameSkyscale = Lang::T("RM_MOUNT_SKYSCALE");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SKYSCALE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SKYSCALE.png", ICON_SKYSCALE, "PNG", true); }
-	mounts->AddItem("Skyscale", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKYSCALE.png");
-	mounts->AddItemAction("Skyscale", EActionType::GameInputBind, EGameBinds_SpumoniMAM08);
+	mounts->AddItem(nameSkyscale, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SKYSCALE.png");
+	mounts->AddItemAction(nameSkyscale, EActionType::GameInputBind, EGameBinds_SpumoniMAM08);
 
+	const char* nameSiegeTurtle = Lang::T("RM_MOUNT_SIEGETURTLE");
 	if (!std::filesystem::exists(IconsDirectory / "ICON_SIEGETURTLE.png")) { Resources::Unpack(SelfModule, IconsDirectory / "ICON_SIEGETURTLE.png", ICON_SIEGETURTLE, "PNG", true); }
-	mounts->AddItem("Siege Turtle", col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SIEGETURTLE.png");
-	mounts->AddItemAction("Siege Turtle", EActionType::GameInputBind, EGameBinds_SpumoniMAM09);
+	mounts->AddItem(nameSiegeTurtle, col, colHov, EIconType::File, "addons\\RadialMenus_CN\\icons\\ICON_SIEGETURTLE.png");
+	mounts->AddItemAction(nameSiegeTurtle, EActionType::GameInputBind, EGameBinds_SpumoniMAM09);
 
 	this->Save();
 }
@@ -2194,6 +2205,58 @@ void CRadialContext::LoadInternal()
 			this->GenerateIBMap();
 			this->SaveInternal();
 			APIDefs->UI.SendAlert(Lang::T("RM_ALERT_ID_CONFLICT"));
+		}
+	}
+
+	/* 迁移：早期版本创建预设轮盘时，条目名称是写死的英文（Raptor 等），
+	   这些名字会存进 packs/*.json 并直接显示为条目名。此处把仍为英文的
+	   预设坐骑条目重命名为当前界面语言（默认简体中文）的译名，并同步更新
+	   “指定条目”引用，避免用户此前生成的配置里残留英文。 */
+	{
+		static const std::map<std::string, const char*> kPresetMountIds = {
+			{ "Raptor", "RM_MOUNT_RAPTOR" },
+			{ "Springer", "RM_MOUNT_SPRINGER" },
+			{ "Skimmer", "RM_MOUNT_SKIMMER" },
+			{ "Jackal", "RM_MOUNT_JACKAL" },
+			{ "Griffon", "RM_MOUNT_GRIFFON" },
+			{ "Roller Beetle", "RM_MOUNT_ROLLERBEETLE" },
+			{ "Warclaw", "RM_MOUNT_WARCLAW" },
+			{ "Skyscale", "RM_MOUNT_SKYSCALE" },
+			{ "Skiff", "RM_MOUNT_SKIFF" },
+			{ "Siege Turtle", "RM_MOUNT_SIEGETURTLE" },
+		};
+
+		bool migrated = false;
+
+		for (CRadialMenu* radial : this->Radials)
+		{
+			if (!radial) { continue; }
+
+			for (RadialItem* item : radial->GetItems())
+			{
+				if (!item) { continue; }
+
+				auto it = kPresetMountIds.find(item->Identifier);
+				if (it == kPresetMountIds.end()) { continue; }
+
+				const std::string localized = Lang::T(it->second);
+				if (localized.empty() || localized == item->Identifier) { continue; }
+
+				/* “指定条目”可能引用旧名称，同步更新 */
+				if (radial->SpecificCenterItemName == item->Identifier)
+				{
+					radial->SpecificCenterItemName = localized;
+				}
+
+				item->Identifier = localized;
+				migrated = true;
+			}
+		}
+
+		if (migrated)
+		{
+			this->GenerateIBMap();
+			this->SaveInternal();
 		}
 	}
 
